@@ -1,0 +1,91 @@
+
+SMCACHE -- Shared Memory Cache Interface.  This interface is used by the DHS
+systems as a hi-level interface to exchange data between the different system
+components.  Much of the interface is specific to details of how it's used
+in the DHS (e.g. exposure IDs, observation sets, etc), but the more general 
+methods still provide a simple interface for use in other applications.
+
+
+	       smc = smcOpen  (config)
+	       smcInitialize  (smc)
+	      smc = smcClose  (smc, free_flag)
+          page = smcFindPage  (smc, memKey)
+          page = smcNextPage  (smc, timeout)
+	            smcPrune  (smc)
+	            smcReset  (smc)
+
+     page = smcNextByExpID  (smc, expID)
+              smcLockExpID  (smc, expID)
+            smcUnlockExpID  (smc, expID)
+
+	   page = smcGetPage  (smc, type, size, attach_flag, lock_flag)
+	           smcAttach  (smc, page)
+	           smcDetach  (smc, page, free_flag)
+
+	  	   smcSetDir  (smc, dirpath)	// Filename Creation attrs
+	     dir = smcGetDir  (smc)
+	         smcSetFRoot  (smc, froot)
+       froot = smcGetFRoot  (smc)
+	         smcSetSeqNo  (smc, seqnum)
+      seqnum = smcGetSeqNo  (smc)
+	        smcIncrSeqNo  (smc)
+	        smcDecrSeqNo  (smc)
+	       smcResetSeqNo  (smc)
+
+	          smcMutexOn  ()		// Mutual exclusion locks
+	         smcMutexOff  ()
+
+	 dir = smcGetPageDir  (page)
+   froot = smcGetPageFRoot  (page)
+  seqnum = smcGetPageSeqNo  (page)
+
+     data = smcGetPageData  (page)		// Managed Page Interface
+	         smcFreePage  (page)
+	             smcLock  (page)
+	           smcUnlock  (page)
+
+           who = smcGetWho  (page)		// Page Attributes
+                 smcSetWho  (page, who)
+       expID = smcGetExpID  (page)
+               smcSetExpID  (page, expID)
+       colID = smcGetColID  (page)
+               smcSetColID  (page, colID)
+   obsetID = smcGetObsetID  (page)
+             smcSetObsetID  (page, obsetID)
+       colID = smcGetColID  (page)
+               smcSetColID  (page, colID)
+    num = smcGetExpPageNum  (page)
+          smcSetExpPageNum  (page, expPageNum)
+       md = smcGetMDConfig  (page)
+            smcSetMDConfig  (page, mdConfig)
+       fp = smcGetFPConfig  (page)
+            smcSetFPConfig  (page, fpConfig)
+
+
+ Callbacks:
+
+       id = smcAddCallback  (smc, callback_type, fcn, client_data)
+         smcRemoveCallback  (smc, id)
+
+             read_callback  (client_data)
+            write_callback  (client_data)
+
+	   
+  Example:
+
+  main (int argc, char*argv) {
+	// Open a cache managing 64 pages.
+	smc = smcOpen ("npages=64");
+
+	// Get a page with a 10K user data allocation, attach, don't lock
+	page = smcGetPage (smc, TY_DATA, 10240, TRUE, FALSE)
+
+	memset (page->data, 1, 10240);    // fill the data area with a '1'
+
+	// Close the cache, detach but don't free.  Another client should
+	// be able to connect to it to see the data. 
+  	(void) smcClose (smc, FALSE);
+    }
+
+
+
